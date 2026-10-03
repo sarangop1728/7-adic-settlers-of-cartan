@@ -65,9 +65,7 @@ Building needs Emacs (29 or later) with the packages `htmlize` and
 `tikz-cd`, `pdftocairo` (Poppler), Python 3, and Magma. Reading the web
 version or running a Magma file needs none of them but Magma.
 
-The web version uses the stylesheets of
-[sarangop1728.github.io](https://sarangop1728.github.io) and of the
-Math 714 lecture notes, vendored in `tools/assets/`. Its LaTeX is converted
+The web version uses the stylesheets in `tools/assets/`. Its LaTeX is converted
 by `tools/tex2html.py`, which takes every number (sections, statements,
 equations, items, tables, citation labels) from the `.aux` file of the
 compiled paper, so that the page and the PDF cannot disagree.
