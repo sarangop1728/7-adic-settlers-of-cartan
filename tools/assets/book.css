@@ -1,0 +1,575 @@
+/* ============================================================================
+   book.css — the web book, layered on org-css.css
+   ----------------------------------------------------------------------------
+   org-css.css (vendored from sarangop1728.github.io) supplies the tokens,
+   type, links and code blocks, so the notes read like the rest of the site.
+   This file adds only what a book needs: the contents sidebar, chapter
+   headings, numbered statements set the way amsthm sets them, proofs,
+   chapter navigation and the per-chapter reference list.
+   ============================================================================ */
+
+
+/* === 1. Tokens ============================================================ */
+
+:root {
+  --ec-sidebar-width: 17.5rem;
+  --ec-measure: 44rem;               /* about 70 characters of Charter */
+  --ec-gutter: clamp(1rem, 4vw, 3rem);
+
+  /* A faint wash of the site's link blue, for statements a reader scans for. */
+  --ec-statement-ground: #eef4f8;
+  --ec-statement-edge: #d6e4ee;
+  --ec-sidebar-ground: #f6f8f9;
+  --ec-current-ground: #e3eef6;
+  --ec-number: #5d7185;
+
+  /* Section status labels (lib/ec-status.el).  The PDF's ecstatus* colours
+     in lib/preamble-overrides.tex are the light values; change both together. */
+  --ec-status-draft: #8a6100;
+  --ec-status-todo: #b3401e;
+}
+
+/* org-css.css switches to dark only through the media query.  The viewer's
+   explicit theme choice has to win in both directions, so the dark tokens
+   are restated for [data-theme="dark"] and the light ones for
+   [data-theme="light"] on a dark system. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ec-statement-ground: #18212b;
+    --ec-statement-edge: #243241;
+    --ec-sidebar-ground: #171a20;
+    --ec-current-ground: #1f2d3a;
+    --ec-number: #8fa3b6;
+    --ec-status-draft: #d9a93a;
+    --ec-status-todo: #f08a6c;
+  }
+  :root[data-theme="light"] {
+    --ec-status-draft: #8a6100;
+    --ec-status-todo: #b3401e;
+    --bg-page: #ffffff; --bg-card: #f8f9f9; --bg-code: #f2f2f2; --bg-toc: #ffffff;
+    --bg-th: #111318; --text: #34495e; --text-muted: #6b7c8f; --heading: #111318;
+    --text-th: #ffffff; --rule: #dddddd; --border: #d0d7de; --link: #2a8ac0;
+    --syn-keyword: #a626a4; --syn-string: #50a14f; --syn-comment: #8a9199;
+    --syn-function: #4078f2; --syn-variable: #986801; --syn-constant: #0184bc;
+    --syn-type: #c18401; --syn-builtin: #b76b01;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg-page: #14171c; --bg-card: #1b1f26; --bg-code: #12151b; --bg-toc: #22272f;
+  --bg-th: #2d333b; --text: #c9d1d9; --text-muted: #8b949e; --heading: #e8edf3;
+  --text-th: #e8edf3; --rule: #30363d; --border: #30363d; --link: #6bb8e8;
+  --syn-keyword: #c678dd; --syn-string: #98c379; --syn-comment: #7f8c98;
+  --syn-function: #61afef; --syn-variable: #e5c07b; --syn-constant: #56b6c2;
+  --syn-type: #e5c07b; --syn-builtin: #d19a66;
+  --ec-statement-ground: #18212b;
+  --ec-statement-edge: #243241;
+  --ec-sidebar-ground: #171a20;
+  --ec-current-ground: #1f2d3a;
+  --ec-number: #8fa3b6;
+  --ec-status-draft: #d9a93a;
+  --ec-status-todo: #f08a6c;
+}
+
+
+/* === 2. Page layout ======================================================= */
+/* Sidebar on the left, one reading column beside it.  #preamble holds the
+   sidebar and the top pager; `display: contents' lets each take its own
+   place in the grid. */
+
+body {
+  background: var(--bg-page);
+  display: grid;
+  grid-template-columns: var(--ec-sidebar-width) minmax(0, 1fr);
+  grid-template-areas:
+    "sidebar pager-top"
+    "sidebar content"
+    "sidebar pager-bottom";
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+#preamble, #postamble { display: contents; }
+
+.ec-sidebar       { grid-area: sidebar; }
+.ec-pager-top     { grid-area: pager-top; }
+#content          { grid-area: content; }
+.ec-pager-bottom  { grid-area: pager-bottom; }
+
+/* The site's card look suits a single page; a book reads better on the page. */
+#content {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  width: 100%;
+  max-width: calc(var(--ec-measure) + 2 * var(--ec-gutter));
+  padding: 1rem var(--ec-gutter) 3rem;
+  justify-self: center;
+}
+
+
+/* === 3. Sidebar =========================================================== */
+
+.ec-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--ec-sidebar-ground);
+  border-right: 1px solid var(--rule);
+  padding: 1.5rem 1rem 2rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.ec-book-title {
+  display: block;
+  color: var(--heading);
+  font-weight: 650;
+  font-size: 1rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.ec-book-title:hover { text-decoration: none; color: var(--link); }
+
+.ec-book-subtitle {
+  margin: 0.25rem 0 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.ec-toc, .ec-toc-sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ec-toc a {
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr);
+  gap: 0.25em;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  color: var(--text);
+}
+.ec-toc a:hover { background: var(--ec-current-ground); text-decoration: none; }
+
+.ec-toc-num {
+  color: var(--ec-number);
+  font-variant-numeric: tabular-nums;
+}
+
+.ec-toc-chapter.is-current > a {
+  background: var(--ec-current-ground);
+  color: var(--heading);
+  font-weight: 600;
+}
+
+.ec-toc-sections { margin: 0.2rem 0 0.5rem; }
+.ec-toc-sections a {
+  grid-template-columns: 3.4em minmax(0, 1fr);
+  font-size: 0.8125rem;
+  padding-block: 0.25rem;
+}
+.ec-toc-sections .ec-toc-level-1 a { padding-left: 1.1rem; }
+.ec-toc-sections .ec-toc-level-2 a { padding-left: 2rem; grid-template-columns: 4.2em minmax(0, 1fr); }
+.ec-toc-sections a.is-active { color: var(--link); }
+.ec-toc-sections a.is-active .ec-toc-num { color: var(--link); }
+
+/* The glossary, after the chapters. */
+.ec-toc-glossary {
+  display: block;
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  color: var(--text);
+}
+.ec-toc-glossary:hover { background: var(--ec-current-ground); text-decoration: none; }
+.ec-toc-glossary.is-current {
+  background: var(--ec-current-ground);
+  color: var(--heading);
+  font-weight: 600;
+}
+
+.ec-menu { display: none; }
+
+
+/* === 4. Chapter title and sections ======================================== */
+
+#content .title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  text-wrap: balance;
+  margin: 1.5rem 0 2rem;
+}
+
+.ec-chapter-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ec-number);
+}
+
+#content h2, #content h3, #content h4 { text-wrap: balance; scroll-margin-top: 1rem; }
+
+.section-number {
+  color: var(--ec-number);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.6em;
+  font-weight: 500;
+}
+
+#content p, #content li { hyphens: auto; }
+
+
+/* === 5. Numbered statements =============================================== */
+/* Set as amsthm sets them in the PDF.  Theorem, lemma, proposition,
+   corollary and conjecture are the statements a reader hunts for, so they
+   get a box, and their text is italic (the `plain' style).  Every other
+   numbered statement stays upright, between two lines from its heading to
+   its last line.  lib/preamble-overrides.tex draws the same boxes and lines
+   in the PDF; change the two together. */
+
+.ec-thm { margin: 1.4em 0; scroll-margin-top: 1rem; }
+.ec-thm > p:first-child { margin-top: 0; }
+.ec-thm > :last-child { margin-bottom: 0; }
+
+.ec-thm-head { font-style: normal; }
+.ec-thm-name {
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+  color: var(--heading);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ec-thm-title { color: var(--heading); }
+
+.ec-theorem, .ec-lemma, .ec-proposition, .ec-corollary, .ec-conjecture {
+  background: var(--ec-statement-ground);
+  border: 1px solid var(--ec-statement-edge);
+  border-radius: 4px;
+  padding: 0.85em 1.1em;
+  font-style: italic;
+}
+
+.ec-definition, .ec-example, .ec-remark, .ec-remarks, .ec-question,
+.ec-answer, .ec-fact, .ec-algorithm, .ec-warning, .ec-situation {
+  border-left: 3px solid var(--ec-statement-edge);
+  border-right: 3px solid var(--ec-statement-edge);
+  padding: 0 1.1em;
+}
+
+/* #+begin_sources, under the chapter title: the books the chapter draws on.
+   Unnumbered; the PDF's `sources' environment in preamble-overrides.tex. */
+.sources, .ec-wip {
+  border-left: 3px solid var(--ec-statement-edge);
+  padding-left: 1.1em;
+  margin: 0 0 2em;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+.sources > :first-child, .ec-wip > :first-child { margin-top: 0; }
+.sources > :last-child, .ec-wip > :last-child { margin-bottom: 0; }
+.sources > p:first-child::before { content: "Sources. "; font-style: italic; }
+
+/* #+begin_wip in book.org, on the index page: the PDF's `wip' environment,
+   set after its contents.  The legend and the date come from lib/ec-status.el. */
+.ec-wip p { margin: 0.45em 0; }
+.ec-wip > p:first-child::before { content: "About these notes. "; font-style: italic; }
+
+
+/* Section status (lib/ec-status.el).  A section marked DRAFT or TODO shows
+   its label and the date it last changed beside its heading: in the left
+   margin when there is room, as \ecstatus does in the PDF, and otherwise on
+   a line above the heading.  The contents repeat the label, and each
+   chapter's progress, as the PDF's contents do. */
+.ec-status-label {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ec-status-draft { color: var(--ec-status-draft); }
+.ec-status-todo { color: var(--ec-status-todo); }
+.ec-status-progress {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+#content .ec-status {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+}
+.ec-status time {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+@media (min-width: 76rem) {
+  #content h2 { position: relative; }
+  #content h2 > .ec-status {
+    position: absolute;
+    right: 100%;
+    top: 0.35em;
+    margin: 0 1.25rem 0 0;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+}
+
+.ec-toc-status { display: block; margin-top: 0.1rem; line-height: 1.2; }
+
+/* Figures and inline diagrams: TikZ compiled to SVG (lib/ec-export.el), at
+   the PDF's size.  The pictures are drawn for white paper, in black with
+   colour, so they sit on a white card in both themes. */
+.ec-figure { margin: 1.4em 0; text-align: center; scroll-margin-top: 1rem; }
+.ec-diagram { margin: 1em 0; text-align: center; }
+/* --ec-w is the picture's width in em, from its size in the PDF against the
+   book's 10pt text (lib/ec-export.el), so a picture keeps its size relative
+   to the text; the calc adds this rule's padding and border.  Without
+   --ec-w the width is invalid and falls back to the picture's own. */
+img.ec-tikz {
+  display: inline-block;
+  box-sizing: border-box;
+  width: calc(var(--ec-w) + 1.2em + 2px);
+  max-width: 100%;
+  height: auto;
+  padding: 0.6em;
+  background: #ffffff;
+  border: 1px solid var(--ec-statement-edge);
+  border-radius: 4px;
+}
+/* Pictures side by side in one figure, spaced like the PDF's \hspace{3em}.
+   They shrink together to fit the column, which is narrower than the PDF's
+   text, and stack one above the other on a phone, where the gap drops out. */
+.ec-figure:has(> img.ec-tikz + img.ec-tikz) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;     /* on their centres, as the PDF's baseline= */
+  gap: 0.6em 3em;
+}
+.ec-figure:has(> img.ec-tikz + img.ec-tikz) > img.ec-tikz { max-width: calc(50% - 1.5em); }
+.ec-figure:has(> img.ec-tikz + img.ec-tikz) > figcaption { flex-basis: 100%; }
+@media (max-width: 40rem) {
+  .ec-figure:has(> img.ec-tikz + img.ec-tikz) > img.ec-tikz { max-width: 100%; }
+}
+.ec-figure figcaption {
+  margin-top: 0.6em;
+  text-align: left;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+/* The target of a link flashes its edge, so the eye lands on it. */
+.ec-thm:target, .ec-figure:target { outline: 2px solid var(--link); outline-offset: 3px; }
+
+/* Proofs are folded, so the statements carry the page.  A <details> needs no
+   script: with book.js missing the folds still open and close.  Closed, a
+   proof is one line; open, its summary floats left and the body flows around
+   it, which is the PDF's run-in "Proof.".  A proof that only points at the
+   literature names its sources while folded (lib/ec-export.el), and drops
+   them once it is open, where the body says the same thing at length. */
+details.ec-proof { margin: -0.4em 0 1.4em; scroll-margin-top: 1rem; }
+.ec-proof > summary { cursor: pointer; list-style: none; }
+.ec-proof > summary::-webkit-details-marker { display: none; }
+.ec-proof-head { font-style: italic; }
+.ec-proof-cites { font-style: normal; font-size: 0.9em; color: var(--text-muted); }
+.ec-proof[open] .ec-proof-cites { display: none; }
+.ec-proof > summary:hover .ec-proof-head { color: var(--link); }
+.ec-proof > summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+/* The fold's affordance, in place of the browser's triangle.  It shows only
+   while the proof is closed: in an open proof it would sit inside the run-in,
+   between "Proof." and the first word.  The italic head stays the handle --
+   it tints on hover and carries the pointer cursor. */
+.ec-proof:not([open]) > summary::after {
+  content: "\25B8";
+  margin-left: 0.35em;
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+/* The run-in only when the body opens with a paragraph: a proof that opens
+   with a list or a displayed equation keeps its head on a line of its own,
+   as it did before the fold. */
+.ec-proof[open]:has(> summary + p) > summary { float: left; margin-right: 0.35em; }
+
+.ec-proof > :last-child::after {
+  content: "\25A1";                  /* the PDF's end-of-proof square */
+  float: right;
+  margin-left: 1em;
+  color: var(--text-muted);
+}
+
+/* \cdef: a defined term, the web's \defi (blue sans serif in the PDF).
+   data-gls holds its glossary key. */
+.ec-cdef {
+  font-style: normal;
+  font-family: var(--font-sans);
+  font-size: 0.95em;
+  color: var(--link);
+  scroll-margin-top: 4rem;
+}
+:target.ec-cdef { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 2px; }
+
+/* The glossary page: term, description, then where it is defined. */
+.ec-gls-term { font-weight: 600; color: var(--heading); }
+.ec-gls-where {
+  margin-left: 0.4em;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+/* Displayed equations scroll on their own on a narrow screen. */
+mjx-container[display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+
+/* === 6. Citations and references ========================================== */
+
+.ec-cite, .ec-eqref { white-space: nowrap; }
+
+.ec-references h2 { font-size: 1.25rem; }
+
+.ec-bibliography {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 1em;
+  row-gap: 0.6em;
+  margin: 1em 0 0;
+  font-size: 0.9375rem;
+}
+.ec-bibliography dt {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--ec-number);
+  font-variant-numeric: tabular-nums;
+  padding-top: 0.1em;
+}
+.ec-bibliography dd { margin: 0; overflow-wrap: anywhere; }
+.ec-bibliography dt:target, .ec-bibliography dt:target + dd { color: var(--heading); }
+.ec-bibliography dt:target { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 2px; }
+
+
+/* === 7. Chapter navigation ================================================ */
+
+.ec-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  max-width: calc(var(--ec-measure) + 2 * var(--ec-gutter));
+  justify-self: center;
+  padding: 0.9rem var(--ec-gutter);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+}
+.ec-pager-top { border-bottom: 1px solid var(--rule); }
+.ec-pager-bottom { border-top: 1px solid var(--rule); padding-bottom: 2.5rem; }
+
+.ec-pager a { display: grid; gap: 0.1rem; color: var(--text); }
+.ec-pager a:hover { text-decoration: none; }
+.ec-pager a:hover .ec-pager-title { color: var(--link); }
+.ec-pager-next { text-align: right; grid-column: 2; }
+.ec-pager-prev { grid-column: 1; }
+.ec-pager-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ec-pager-title { color: var(--heading); text-wrap: balance; }
+.ec-pager-top .ec-pager-label { display: none; }
+.ec-pager-top { color: var(--text-muted); }
+
+
+/* === 8. Index page ======================================================== */
+
+.ec-index .subtitle { font-family: var(--font-sans); margin: -1.25rem 0 0.25rem; }
+.ec-index-author { color: var(--text-muted); margin-top: 0; }
+
+.ec-index-chapters { list-style: none; padding: 0; margin: 1rem 0; }
+.ec-index-chapters li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ec-index-chapters a {
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr);
+  flex: 1;
+  color: var(--heading);
+}
+
+
+/* === 9. Narrow screens ==================================================== */
+
+@media (max-width: 60rem) {
+  body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "pager-top" "content" "pager-bottom";
+  }
+
+  .ec-menu {
+    display: block;
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 30;
+    font: 600 0.875rem/1 var(--font-sans);
+    color: var(--bg-page);
+    background: var(--heading);
+    border: 0;
+    border-radius: 999px;
+    padding: 0.75rem 1.1rem;
+    box-shadow: 0 2px 10px var(--shadow-strong);
+    cursor: pointer;
+  }
+  .ec-menu:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+
+  .ec-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    width: min(var(--ec-sidebar-width), 85vw);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.2s ease, visibility 0.2s;
+    box-shadow: 4px 0 24px var(--shadow);
+  }
+  .ec-nav-open .ec-sidebar { transform: none; visibility: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-sidebar { transition: none; }
+}
+
+@media print {
+  .ec-sidebar, .ec-pager, .ec-menu { display: none; }
+  body { display: block; }
+}

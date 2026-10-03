@@ -1,0 +1,148 @@
+/* ============================================================================
+   paper.css — the web version of the paper, layered on org-css.css + book.css
+   ----------------------------------------------------------------------------
+   org-css.css (sarangop1728.github.io) and book.css (the Math 714 web book)
+   are vendored unchanged.  This file adds what a paper with code needs and a
+   book does not: authors and abstract, the paper's ruled tables, labelled
+   list items, footnotes, and the folded "Magma check" boxes with their output.
+   ============================================================================ */
+
+/* === Front matter ======================================================== */
+
+.paper-authors {
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  margin: -0.5rem 0 1.5rem;
+}
+
+.paper-abstract {
+  margin: 1.5em 0 2em;
+  padding: 0.9em 1.1em;
+  background: var(--ec-statement-ground);
+  border: 1px solid var(--ec-statement-edge);
+  border-radius: 6px;
+}
+.paper-abstract > p { margin: 0.5em 0; }
+.paper-abstract-head {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.paper-sidebar-links {
+  margin: 1.2rem 0 0;
+  padding: 0 0.5rem;
+  font-size: 0.8125rem;
+}
+
+h2.paper-unnumbered, h3.paper-unnumbered { scroll-margin-top: 1rem; }
+
+/* === Lists with LaTeX's own labels ======================================== */
+/* amsart labels items (1), (2), ... and nested ones (a), (b), ...; the
+   labels are printed in the text, so the browser's own numbers are off. */
+
+ol.paper-labelled { list-style: none; padding-left: 1.6em; }
+ol.paper-labelled > li { position: relative; }
+.paper-item-label {
+  position: absolute;
+  left: -2.2em;
+  width: 2em;
+  text-align: right;
+  font-style: normal;
+}
+ol.paper-labelled > li:target { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 2px; }
+
+.paper-sf { font-family: var(--font-sans); }
+
+/* === Tables =============================================================== */
+/* The PDF's tables: heavy black rules at top, bottom and under the header,
+   light gray rules between rows and between column groups, a shaded header. */
+
+.paper-table-scroll { overflow-x: auto; max-width: 100%; }
+.paper-table table {
+  margin: 0 auto;
+  border-collapse: collapse;
+  border-top: 2px solid var(--text);
+  border-bottom: 2px solid var(--text);
+  font-size: 0.95em;
+}
+.paper-table th, .paper-table td {
+  padding: 0.35em 0.8em;
+  text-align: center;
+  vertical-align: middle;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-weight: normal;
+}
+.paper-table tr.paper-head > th, .paper-table tr.paper-head > td {
+  background: var(--ec-statement-ground);
+  color: var(--heading);
+}
+.paper-table tr.paper-rule-heavy > * { border-top: 2px solid var(--text); }
+.paper-table tr.paper-rule-light > * { border-top: 1px solid var(--rule); }
+.paper-table .paper-vr-heavy { border-right: 2px solid var(--text); }
+.paper-table .paper-vr-light { border-right: 1px solid var(--rule); }
+.paper-table .paper-vl-heavy { border-left: 2px solid var(--text); }
+.paper-table .paper-vl-light { border-left: 1px solid var(--rule); }
+.paper-table figcaption { margin-top: 0.8em; }
+
+.ec-figure-name { font-family: var(--font-sans); font-weight: 600; }
+
+/* === Footnotes ============================================================ */
+
+.paper-footnotes {
+  margin-top: 2.5em;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9em;
+}
+.paper-footnotes ol { list-style: none; padding-left: 0; }
+
+/* === Magma check boxes ==================================================== */
+/* Folded like the proofs: one line while closed, the code and its recorded
+   output when open.  A box follows the statement (and its proof) whose
+   claims it checks; it never sits inside a statement, whose text is italic. */
+
+details.ec-code {
+  margin: -0.2em 0 1.4em;
+  border-left: 3px solid var(--ec-statement-edge);
+  padding-left: 0.8em;
+  scroll-margin-top: 1rem;
+}
+.ec-code > summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+.ec-code > summary::-webkit-details-marker { display: none; }
+.ec-code:not([open]) > summary::after { content: " \25B8"; }
+.ec-code[open] > summary::after { content: " \25BE"; }
+.ec-code > summary:hover .ec-code-head { color: var(--link); }
+.ec-code > summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.ec-code-head { font-weight: 600; }
+.paper-code-file {
+  margin-left: 0.5em;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+.paper-output-head {
+  margin: 0.8em 0 0.2em;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+pre.paper-output {
+  max-height: 30em;
+  overflow: auto;
+  font-size: 0.8125rem;
+}
+.paper-code-note { font-size: 0.9375rem; color: var(--text-muted); }
+.paper-code-note p { margin: 0.5em 0; }
+
+/* MathJax gives a numbered display an inline min-width wide enough for the
+   formula and its tag, which defeats book.css's overflow-x: auto on a narrow
+   screen; without it, a wide display scrolls inside its own box. */
+#content mjx-container[display="true"] { min-width: 0 !important; }
