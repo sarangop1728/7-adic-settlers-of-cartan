@@ -640,7 +640,7 @@ $49$ classes in step~(2), and to $7$ of these in step~(4).
   three obvious rational points: Hurwitz \cite{Hurwitz-08} showed that any other
   would give a nontrivial solution of Fermat's equation of exponent $7$, and
   Elkies \cite{Elkies-99}*{Section 3.1} gives a direct proof through an
-  elliptic quotient of rank zero. Pulling the three points back gives the
+  elliptic quotient of rank zero.\footnote{Elkies also pointed out to us that an argument equivalent to Hurwitz's appears even earlier, in an 1864 paper of Genocchi \cite{Genocchi-64}.} Pulling the three points back gives the
   solutions listed in \cref{thm:superelliptic}. So, via Hurwitz, the last open
   case of the $7$-adic Program B rests on Fermat's Last Theorem for exponent
   $7$.
@@ -4435,6 +4435,17 @@ there.
         note={Preprint,
   \href{https://arxiv.org/abs/2412.10340v4}{\texttt{arXiv:2412.10340v4}}, June
   5, 2026},
+}
+
+\bib{Genocchi-64}{article}{
+      author={Genocchi, Angelo},
+       title={Intorno all'equazione {$x^7+y^7+z^7=0$}},
+     journal={Annali di Matematica Pura ed Applicata (1850--1865)},
+      volume={6},
+      number={1},
+       pages={287--288},
+        date={1864},
+         doi={10.1007/BF03198884},
 }
 
 \bib{GR-78}{article}{
